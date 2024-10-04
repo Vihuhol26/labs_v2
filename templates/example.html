@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> {{ name }}. {{ number }} </title>
+    <title>{% if name %}
+                {{ name }} 
+            {% else %}
+                Anonimus
+            {% endif %}. 
+            {{ number }} </title>
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
 </head>
 <body>
     <header>
-        WEB-программирование, часть 2. {{ number }}
+        WEB-программирование, часть 2. {% if number %}Лабораторная работа 2{% endif %}
     </header>
 
     <main>
@@ -19,7 +24,25 @@
     </main>
 
     <footer>
-        &copy; {{ name }}, {{ group }}, {{ course }}, 2024
+        &copy; 
+        {% if name %}
+            {{ name }}, 
+        {% else %}
+            Anonimus,
+        {% endif %}
+
+        {% if group %}
+            {{ group }},
+        {% else %}
+            No group
+        {% endif %}
+
+        {% if course %}
+            {{ course }},
+        {% else %}
+            No course,
+        {% endif %}
+        2024
     </footer>
 </body>
 </html>
