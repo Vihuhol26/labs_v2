@@ -68,7 +68,7 @@ def lab1():
             <li><a href="http://127.0.0.1:5000/lab1/oak">Lab1/oak - Дуб</a></li>
             <li><a href="http://127.0.0.1:5000/lab1/student">Lab1/student - Студент</li>
             <li><a href="http://127.0.0.1:5000/lab1/python">Lab1/python - Python</li>
-            <li><a href="http://127.0.0.1:5000/lab1/cats">Lab1/cats - Котики</li>
+            <li><a href="http://127.0.0.1:5000/lab1/cat">Lab1/cat - Котики</li>
         </p>
         <footer>
             &copy; Чувашова Маргарита Вячеславовна, ФБИ-23, 3 курс, 2024
@@ -160,8 +160,8 @@ def python():
 </html>
 '''
 
-@app.route("/lab1/cats")
-def cats():
+@app.route("/lab1/cat")
+def cat():
     return '''
 <!doctype html>
 <html>
@@ -172,7 +172,7 @@ def cats():
     <header>
         НГТУ, ФБ, Лабораторная работа 1
     </header>
-    <h1>Cats</h1>
+    <h1>Cat</h1>
 
     <p>
        Котики — это удивительные существа, которые славятся своей грациозностью и независимым характером. Их мягкое мурчание и игривое поведение 
@@ -228,3 +228,6 @@ def example():
 def lab2():
     return render_template('lab2.html')
 
+@app.route('/cats/')
+def cats():
+    return render_template('cats.html')
