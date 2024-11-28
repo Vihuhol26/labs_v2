@@ -122,3 +122,48 @@ def trainacc():
 
     return render_template("lab3/trainacc.html", user_fio = user_fio, user_in = user_in, user_out = user_out, age_pass = age_pass, type_b = type_b,
                            type_p = type_p, type_t = type_t, calen = calen)
+
+
+products = [
+    {'name': 'Смартфон A', 'price': 10000, 'brand': 'Brand A', 'color': 'черный'},
+    {'name': 'Смартфон B', 'price': 15000, 'brand': 'Brand B', 'color': 'белый'},
+    {'name': 'Смартфон C', 'price': 20000, 'brand': 'Brand A', 'color': 'зеленый'},
+    {'name': 'Смартфон D', 'price': 25000, 'brand': 'Brand C', 'color': 'синий'},
+    {'name': 'Смартфон E', 'price': 30000, 'brand': 'Brand D', 'color': 'черный'},
+    {'name': 'Смартфон F', 'price': 35000, 'brand': 'Brand E', 'color': 'белый'},
+    {'name': 'Смартфон G', 'price': 40000, 'brand': 'Brand F', 'color': 'зеленый'},
+    {'name': 'Смартфон H', 'price': 45000, 'brand': 'Brand G', 'color': 'синий'},
+    {'name': 'Смартфон I', 'price': 50000, 'brand': 'Brand H', 'color': 'черный'},
+    {'name': 'Смартфон J', 'price': 55000, 'brand': 'Brand I', 'color': 'белый'},
+    {'name': 'Смартфон K', 'price': 60000, 'brand': 'Brand J', 'color': 'зеленый'},
+    {'name': 'Смартфон L', 'price': 70000, 'brand': 'Brand K', 'color': 'синий'},
+    {'name': 'Смартфон M', 'price': 80000, 'brand': 'Brand L', 'color': 'черный'},
+    {'name': 'Смартфон N', 'price': 90000, 'brand': 'Brand M', 'color': 'белый'},
+    {'name': 'Смартфон O', 'price': 100000, 'brand': 'Brand N', 'color': 'зеленый'},
+    {'name': 'Смартфон P', 'price': 110000, 'brand': 'Brand O', 'color': 'синий'},
+    {'name': 'Смартфон Q', 'price': 120000, 'brand': 'Brand P', 'color': 'черный'},
+    {'name': 'Смартфон R', 'price': 130000, 'brand': 'Brand Q', 'color': 'белый'},
+    {'name': 'Смартфон S', 'price': 140000, 'brand': 'Brand R', 'color': 'зеленый'},
+    {'name': 'Смартфон T', 'price': 150000, 'brand': 'Brand S', 'color': 'синий'},
+]
+
+@lab3.route("/lab3/range")
+def range():
+    return render_template('lab3/range.html')
+
+@lab3.route('/search', methods=['POST'])
+def search():
+    min_price = request.form['min_price']
+    max_price = request.form['max_price']
+
+    # Фильтрация товаров по диапазону цен
+    filtered_products = [
+        product for product in products
+        if min_price.isdigit() and max_price.isdigit() and 
+        int(min_price) <= product['price'] <= int(max_price)
+    ]
+
+    return render_template('lab3/error.html', products=filtered_products)
+
+if __name__ == '__main__':
+    lab3.run(debug=True)
