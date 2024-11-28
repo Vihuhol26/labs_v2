@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block lab %}Лабораторная работа 3{% endblock %}
+
+{% block main %}
+
+    <div style="position: absolute; right: 440px; width: 600px; height: 150px; color: black;">
+        <div>
+            <img src="/static/ticket.png" style="position: absolute; right: -22px; top: -4px; height: 200px; width: 700px;">
+        </div>
+        <div style="position: absolute; right: 150px; padding: 13px; top: 28px; font-weight: bold; font-size: 21px;">
+            Железнодорожный билет
+        </div>
+        <div style="position: absolute; left: 10px; top: 70px;">
+            ФИО: {{ user_fio }} Возраст: {{ age_pass }} Тип билета: {{ type_t }}
+        </div>
+        <div style="position: absolute; left: 10px; top: 95px;">
+            Место: {{ type_p }} Багаж: {{ type_b }}
+        </div>
+        <div style="position: absolute; left: 10px; top: 120px;">
+            Город отправления: {{ user_out }} Город назначения: {{ user_in }}
+        </div>
+        <div style="position: absolute; right: 30px; top: 125px;">
+            Дата: {{ calen }}
+        </div>
+    </div>
+
+{% endblock %}

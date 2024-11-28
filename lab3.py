@@ -61,3 +61,64 @@ def pay():
 def success():
     return render_template("lab3/success.html")
 
+@lab3.route("/lab3/train")
+def train():
+    errors = {}
+    return render_template("lab3/train.html", errors = errors)
+
+
+@lab3.route("/lab3/trainacc")
+def trainacc():
+    a = 0
+    errors = {}
+    user_in = request.args.get("user_in")
+    user_in = request.args.get("user_in")
+    if user_in == "":
+        errors["user_in"] = "Заполните поле!"
+
+    user_out = request.args.get("user_out")
+    if user_out == "":
+        errors["user_out"] = "Заполните поле!"
+
+    user_fio = request.args.get("user_fio")
+    if user_fio == "":
+        errors["user_fio"] = "Заполните поле!"
+
+    age_pass = request.args.get("age_pass")
+    if age_pass == "":
+        errors["age_pass"] = "Заполните поле!"
+    elif age_pass is not None:
+        if int(age_pass) > 120 or int(age_pass) < 18:
+            errors["age_pass"] = "От 18 до 120 лет!"
+    else:
+        a += 1
+    
+    type_t = request.args.get("type_t")
+    if type_t == "child":
+        type_t = "Детский"
+    if type_t == "human":
+        type_t = "Взрослый"
+
+    type_p = request.args.get("type_p")
+    if type_p == "down":
+        type_p = "нижняя полка"
+    elif type_p == "up":
+        type_p = "верхняя полка"
+    elif type_p == "down_side":
+        type_p = "нижняя боковая полка"
+    else:
+        type_p = "верхняя боковая полка"
+
+    type_b = request.args.get("type_b")
+    if type_b == "yes":
+        type_b = "Да"
+    else:
+        type_b = "Нет"
+
+    calen = request.args.get("calen")
+
+    if len(errors) > 0:
+        return render_template("lab3/train.html", errors = errors)
+
+    return render_template("lab3/trainacc.html", user_fio = user_fio, user_in = user_in, user_out = user_out, age_pass = age_pass, type_b = type_b,
+                           type_p = type_p, type_t = type_t, calen = calen)
