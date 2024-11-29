@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block lab %}Лабораторная работа 4{% endblock %}
+{% block main %}
+<h1>Заказ зерна</h1>
+<h3 style="color: blue; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">{{ error }}</h3>
+<form method = "post">
+    <div>
+        <select id="type_offer" name="type_offer">
+            <option value="zerno">Зерно</option>
+            <option value="yach">Ячмень</option>
+            <option value="oves">Овес</option>
+            <option value="psh">Пшеница</option>
+            <option value="poz">Рожь</option>
+        </select>
+    </div>
+    <div>
+        <label for="weight">Вес:</label>
+        <input type="number" id="weight" name="weight">
+    </div>
+    <div>
+        <button type="submit">Оформить заказ</button>
+    </div>
+</form>
+{% endblock %}
