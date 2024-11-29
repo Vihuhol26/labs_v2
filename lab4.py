@@ -62,18 +62,20 @@ def power():
     result = x1 ** x2
     return render_template('lab4/div.html', operation="возведения в степень", x1=x1, x2=x2, result=result)
 
-tree_count = 0  
+tree_count = 0
+max_trees = 10 
+
 @lab4.route("/lab4/tree", methods=["GET", "POST"])
 def tree():
     global tree_count
     if request.method == "POST":
         operation = request.form.get("operation")
-        if operation == "plant":
+        if operation == "plant" and tree_count < max_trees:
             tree_count += 1
         elif operation == "cut" and tree_count > 0:
             tree_count -= 1
-        return redirect (url_for("lab4.tree")) 
-    return render_template("lab4/tree.html", tree_count=tree_count)
+        return redirect(url_for('lab4.tree'))
+    return render_template("lab4/tree.html", tree_count=tree_count, max_trees=max_trees) 
 
 if __name__ == "__main__":
     lab4.run(debug=True)
