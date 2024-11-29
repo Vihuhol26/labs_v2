@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block lab %}Регистрация{% endblock %}
+{% block main %}
+    <h1>Регистрация</h1>
+    {% if error %}
+        <h3 style="color: red; font-style: italic;">{{ error }}</h3>
+    {% endif %}
+    <form method="post">
+        <div>
+            <label for="username">Логин:</label>
+            <input type="text" id="username" name="username">
+        </div>
+        <div>
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password">
+        </div>
+        <div>
+            <label for="name">Имя:</label>
+            <input type="text" id="name" name="name">
+        </div>
+        <div>
+            <button type="submit">Зарегистрироваться</button>
+        </div>
+    </form>
+    <p>Уже зарегистрированы? <a href="{{ url_for('login') }}">Войти</a></p>
+{% endblock %}
