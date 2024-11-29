@@ -79,3 +79,113 @@ def tree():
 
 if __name__ == "__main__":
     lab4.run(debug=True)
+
+    lab4.secret_key = 'your_secret_key'  
+
+users = [
+    {"username": "alex", "password": "123", "name": "Алексей Иванов", "gender": "мужской"},
+    {"username": "bob", "password": "456", "name": "Борис Петров", "gender": "мужской"},
+    {"username": "anna", "password": "789", "name": "Анна Смирнова", "gender": "женский"}
+]
+
+@lab4.route("/lab4/login/", methods=["POST", "GET"])
+def login():
+    if request.method == "GET":
+        return render_template("lab4/login.html")
+
+    username = request.form.get("username")
+    password = request.form.get("password")
+    error = None
+
+    # Проверка на пустые поля
+    if not username:
+        error = "Не введён логин!"
+    elif not password:
+        error = "Не введён пароль!"
+
+    # Проверка логина и пароля
+    if not error:
+        for user in users:
+            if user["username"] == username and user["password"] == password:
+                return render_template("rrr.html", name=user["name"])
+
+        # Ошибка если логин или пароль неверны
+        error = "Неверный логин и/или пароль!"
+
+    # Возвращаем пользователя на страницу логина с сохранённым логином и сообщением об ошибке
+    return render_template("lab4/login.html", error=error, username=username)
+
+# Добавляем маршрут для страницы регистрации
+@lab4.route("/lab4/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        name = request.form.get("name")
+        gender = request.form.get("gender")
+        
+        # Проверка уникальности логина
+        if any(user['username'] == username for user in users):
+            error = "Этот логин уже занят!"
+            return render_template("register.html", error=error)
+        
+        # Добавление нового пользователя в массив
+        users.append({
+            'username': username,
+            'password': password,
+            'name': name,
+            'gender': gender
+        })
+        return redirect(url_for('lab4.login'))
+    return redirect(url_for('lab4.login')) 
+
+@lab4.route("/lab4/users")
+def users_list():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template("lab4/users_list.html", users=users, current_user=session['username'])
+
+@lab4.route("/lab4/edit/<username>", methods=["GET", "POST"])
+def edit_user(username):
+    if 'username' not in session or session['username'] != username:
+        return redirect(url_for('login'))
+    user = next((u for u in users if u['username'] == username), None)
+    if request.method == "POST":
+        user['name'] = request.form.get("name")
+        user['password'] = request.form.get("password")
+        return redirect(url_for('users_list'))
+    return render_template("lab4/edit_user.html", user=user)
+
+@lab4.route("/lab4/delete/<username>", methods=["POST"])
+def delete_user(username):
+    if 'username' not in session or session['username'] != username:
+        return redirect(url_for('login'))
+    global users
+    users = [u for u in users if u['username'] != username]
+    session.pop('username', None) 
+    return redirect(url_for('login'))
+
+@lab4.route("/lab4/fridge/", methods=["POST", "GET"])
+def fridge():
+    if request.method == "GET":
+        return render_template("lab4/fridge.html")
+
+    temp = request.form.get("temp")
+    if not temp:
+        error = "Ошибка: не задана температура!"
+        return render_template("lab4/fridge.html", error = error)
+    elif int(temp) < -12:
+        error = "Не удалось установить температуру — слишком низкое значение!"
+        return render_template("lab4/fridge.html", error = error)
+    elif int(temp) > -1:
+        error = "Не удалось установить температуру — слишком высокое значение!"
+        return render_template("lab4/fridge.html", error = error)
+    elif int(temp) >= -12 and int(temp) <= -9:
+        error = "Установлена температура: " + str(temp) + "°С ❆❆❆"
+        return render_template("lab4/temp.html", error = error)
+    elif int(temp) >= -8 and int(temp) <= -5:
+        error = "Установлена температура: " + str(temp) + "°С ❆❆"
+        return render_template("lab4/temp.html", error = error)
+    else:
+        error = "Установлена температура: " + str(temp) + "°С ❆"
+        return render_template("lab4/temp.html", error = error)
