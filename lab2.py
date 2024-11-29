@@ -23,15 +23,15 @@ def example():
         {'author': 'Марк Твен', 'title': 'Приключения Гекльберри Финна', 'genre': 'Приключения', 'pages': 366},
         {'author': 'Джон Р. Р. Толкин', 'title': 'Властелин колец', 'genre': 'Фэнтези', 'pages': 1178}
     ]
-    return render_template('example.html', name=name, number=number, 
+    return render_template('lab2/example.html', name=name, number=number, 
                            group=group, course=course, fruits=fruits, books=books)
 
 
 @lab2.route('/lab2/')
 def lab():
-    return render_template('lab2.html')
+    return render_template('lab2/lab2.html')
 
 
 @lab2.route('/lab2/cats/')
 def cats():
-    return render_template('cats.html')
+    return render_template('lab2/cats.html')

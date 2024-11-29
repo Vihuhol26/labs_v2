@@ -22,6 +22,7 @@ def menu():
             <li><a href="http://127.0.0.1:5000/lab1">Первая лабораторная</a></li>
             <li><a href="http://127.0.0.1:5000/lab2">Вторая лабораторная</a></li>
             <li><a href="http://127.0.0.1:5000/lab3">Третья лабораторная</a></li>
+            <li><a href="http://127.0.0.1:5000/lab4">Четвертая лабораторная</a></li>
         </ol>
         </main>
 
@@ -89,7 +90,7 @@ def oak():
         НГТУ, ФБ, Лабораторная работа 1
     </header>
     <h1>Дуб</h1>
-    <img src="''' + url_for('static', filename='oak.jpg') + '''" alt="Дуб">
+    <img src="''' + url_for('static', filename='lab1/oak.jpg') + '''" alt="Дуб">
     <footer>
         &copy; Чувашова Маргарита Вячеславовна, ФБИ-23, 3 курс, 2024
     </footer>
@@ -111,7 +112,7 @@ def student():
         НГТУ, ФБ, Лабораторная работа 1
     </header>
     <h1>Чувашова Маргарита Вячеславовна</h1>
-    <img src="''' + url_for('static', filename='logo.png') + '''" width="300" alt="Логотип">
+    <img src="''' + url_for('static', filename='lab1/logo.png') + '''" width="300" alt="Логотип">
     <footer>
         &copy; Чувашова Маргарита Вячеславовна, ФБИ-23, 3 курс, 2024
     </footer>
@@ -135,7 +136,7 @@ def python():
     <h1>Python</h1>
     <p>Python часто воспринимается как удивительно легкий язык программирования благодаря своему простому 
         и читаемому синтаксису...</p>
-    <img src="''' + url_for('static', filename='python.jpg') + '''" width="300" alt="Python">
+    <img src="''' + url_for('static', filename='lab1/python.jpg') + '''" width="300" alt="Python">
     <footer>
         &copy; Чувашова Маргарита Вячеславовна, ФБИ-23, 3 курс, 2024
     </footer>
@@ -158,7 +159,7 @@ def cat():
     </header>
     <h1>Cat</h1>
     <p>Котики — это удивительные существа, которые славятся своей грациозностью и независимым характером...</p>
-    <img src="''' + url_for('static', filename='cat.png') + '''" width="300" alt="Котик">
+    <img src="''' + url_for('static', filename='lab1/cat.png') + '''" width="300" alt="Котик">
     <footer>
         &copy; Чувашова Маргарита Вячеславовна, ФБИ-23, 3 курс, 2024
     </footer>
