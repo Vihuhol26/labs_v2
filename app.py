@@ -4,8 +4,10 @@ from lab2 import lab2
 from lab3 import lab3
 from lab4 import lab4
 from lab5 import lab5
+import secrets
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex(16)
 app.register_blueprint(lab1)
 app.register_blueprint(lab2)
 app.register_blueprint(lab3)
