@@ -6,10 +6,17 @@
 
     <h1>Статьи</h1>
 
-    {% if articles %}
+    <ul>
         {% for article in articles %}
-            <h2>{{ article['title'] }}</h2>
-            <blockquote>{{ article['article_text'] }}</blockquote>
+            <li>
+                <h2>{{ article['title'] }}</h2>
+                <blockquote>{{ article['article_text'] }}</blockquote>
+                <a href="/lab5/edit">Редактировать</a>
+                <form action="/lab5/delete" method="POST" style="display:inline;">
+                    <input type="hidden" name="id" value="{{ article['id'] }}">
+                    <button type="submit" onclick="return confirm('Вы уверены, что хотите удалить эту статью?');">Удалить</button>
+                </form>
+            </li>
         {% endfor %}
-
+    </ul>
 {% endblock %}
