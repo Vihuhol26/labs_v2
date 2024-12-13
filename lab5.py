@@ -56,10 +56,6 @@ def register():
     db_close(conn, cur)
     return render_template('lab5/success.html', login=login)
 
-@lab5.route('/lab5/list')
-def list_articles():
-    return render_template('lab5/list.html', username='anonymous')
-
 @lab5.route('/lab5/create')
 def create_article():
     return render_template('lab5/create.html', username='anonymous')
@@ -123,3 +119,26 @@ def create():
     db_close(conn, cur)
     return redirect('/lab5')
 
+@lab5.route('/lab5/list', methods=['GET', 'POST'])
+def list():
+    login = session.get('login')
+    if not login:
+        return redirect('/lab5/login')
+
+    conn, cur = db_connect()
+
+    if current_app.config['DB_TYPE'] == 'postgres':
+        cur.execute("SELECT * FROM users WHERE login = %s;", (login, ))
+    else:
+        cur.execute("SELECT * FROM users WHERE login = ?;", (login, ))
+    users = cur.fetchone()
+    user_id = users["id"]
+
+    if current_app.config['DB_TYPE'] == 'postgres':
+        cur.execute("SELECT * FROM articles WHERE user_id = %s;", (user_id, ))
+    else:
+        cur.execute("SELECT * FROM articles WHERE user_id = ?;", (user_id, ))
+    articles = cur.fetchall()
+
+    db_close(conn, cur)
+    return render_template('/lab5/articles.html', articles=articles)
