@@ -2,6 +2,8 @@ from flask import Flask, Blueprint, render_template, request, redirect, url_for,
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from werkzeug.security import check_password_hash, generate_password_hash
+import sqlite3
+from os import path
 
 lab5 = Blueprint('lab5', __name__)
 
@@ -19,8 +21,11 @@ def db_connect():
         )
         cur = conn.cursor(cursor_factory=RealDictCursor)
     else:
-        conn = sqlite3.connect("database.db")
+        dir_path = path.dirname(path.repath(__file__))
+        db_path = path.join(dir_path, "database.db")
+        conn = sqlite3.connect(db_path)
         cur = conn.cursor()
+        conn.row_factory = sqlite3.Row
 
     return conn, cur
 

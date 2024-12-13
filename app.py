@@ -9,14 +9,15 @@ from lab5 import lab5
 import secrets
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'секретный-секрет')
+app.config['DB_TYPE'] = os.getenv('DB_TYPE', 'postgres')
+
 app.register_blueprint(lab1)
 app.register_blueprint(lab2)
 app.register_blueprint(lab3)
 app.register_blueprint(lab4)
 app.register_blueprint(lab5)
-
-app.secret_key = secrets.token_hex(16)
-app.config['DB_TYPE'] = os.getenv('DB_TYPE', 'postgres')
 
 @app.route("/")
 @app.route("/index")
