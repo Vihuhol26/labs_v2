@@ -34,3 +34,7 @@ def start():
 @app.route("/menu")
 def menu():
     return render_template('menu.html')
+
+@app.route("/rgz")
+def menu_rgz():
+    return render_template('rgz.html')
