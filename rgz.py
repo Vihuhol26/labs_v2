@@ -2,6 +2,7 @@ from flask import Flask, Blueprint, render_template, request, redirect, url_for,
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from functools import wraps
+import os
 
 rgz = Blueprint('rgz', __name__)
 
@@ -32,6 +33,7 @@ def manager_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Главная страница
 @rgz.route('/rgz/')
 def lab():
     user_id = session.get('user_id')
@@ -45,6 +47,7 @@ def lab():
 
     return render_template('rgz/rgz.html', login=session.get('login'), user=user)
 
+# Страница входа
 @rgz.route('/rgz/login/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -68,6 +71,7 @@ def login():
 
     return render_template('rgz/login.html')
 
+# Страница панели управления
 @rgz.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
@@ -81,6 +85,7 @@ def dashboard():
 
     return render_template('rgz/dashboard.html', user=user)
 
+# Перевод средств
 @rgz.route('/transfer', methods=['POST'])
 def transfer():
     sender_id = session['user_id']
@@ -117,10 +122,12 @@ def transfer():
     finally:
         db_close(conn, cur)
 
+# Страница успешного перевода
 @rgz.route('/transfer_success')
 def transfer_success():
     return render_template('rgz/transfer_success.html')
 
+# Выбор пользователя для редактирования
 @rgz.route('/select_user', methods=['GET'])
 @manager_required
 def select_user():
@@ -135,6 +142,7 @@ def select_user():
 
     return render_template('rgz/select_user.html', users=users)
 
+# Редактирование пользователя
 @rgz.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @manager_required
 def edit_user(user_id):
@@ -169,6 +177,7 @@ def edit_user(user_id):
 
     return render_template('rgz/edit_user.html', user=user)
 
+# Удаление пользователя
 @rgz.route('/delete_user/<int:user_id>', methods=['POST'])
 @manager_required
 def delete_user(user_id):
@@ -181,6 +190,7 @@ def delete_user(user_id):
 
     return redirect(url_for('rgz.select_user'))
 
+# Создание пользователя
 @rgz.route('/create_user', methods=['GET', 'POST'])
 @manager_required
 def create_user():
@@ -203,6 +213,7 @@ def create_user():
 
     return render_template('rgz/create_user.html')
 
+# История транзакций
 @rgz.route('/transaction_history')
 def transaction_history():
     if 'user_id' not in session:
@@ -216,6 +227,7 @@ def transaction_history():
 
     return render_template('rgz/transaction_history.html', transactions=transactions)
 
+# Получение списка пользователей (JSON)
 @rgz.route('/users', methods=['GET'])
 def users():
     conn, cur = db_connect()
@@ -224,10 +236,8 @@ def users():
     db_close(conn, cur)
     return jsonify(users)
 
+# Выход из системы
 @rgz.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('rgz.login'))
-
-if __name__ == "__main__":
-    app.run()
