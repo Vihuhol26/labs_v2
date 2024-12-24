@@ -7,6 +7,7 @@ from lab3 import lab3
 from lab4 import lab4
 from lab5 import lab5
 from lab6 import lab6
+from rgz import rgz
 import secrets
 
 app = Flask(__name__)
@@ -20,8 +21,13 @@ app.register_blueprint(lab3)
 app.register_blueprint(lab4)
 app.register_blueprint(lab5)
 app.register_blueprint(lab6)
+app.register_blueprint(rgz)
+
+app.config['JSON_AS_ASCII'] = False
+app.config['JSONIFY_MIMETYPE'] = "application/json; charset=utf-8"
 
 @app.route("/")
 @app.route("/index")
 def start():
     return redirect("/menu", code=302)
+

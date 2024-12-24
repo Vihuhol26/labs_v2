@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block lab %}Расчетно-графическое задание{% endblock %}
+
+{% block main %}
+<h1>База знаний</h1>
+<p>Добро пожаловать, {{ login if login else 'Anonymous' }}!</p>
+<ol>
+    <li><a href="{{ url_for('rgz.login') }}">Вход</a></li>
+    <li><a href="{{ url_for('rgz.dashboard') }}">Перевод средств</a></li>
+    <li><a href="{{ url_for('rgz.transaction_history') }}">История транзакций</a></li>
+    <li><a href="{{ url_for('rgz.logout') }}">Выйти</a></li>
+    {% if session.user_type == 'manager' %}
+    <li><a href="{{ url_for('rgz.create_user') }}">Создать нового пользователя</a></li>
+    <li><a href="{{ url_for('rgz.select_user') }}">Редактировать пользователя</a></li>
+        {% endif %}
+</ol>
+{% endblock %}
