@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block lab %}Выбор пользователя{% endblock %}
+
+{% block main %}
+<h1>Выберите пользователя для редактирования</h1>
+<form method="GET" action="{{ url_for('rgz.select_user') }}">
+    <label for="user_id">Пользователь:</label>
+    <select id="user_id" name="user_id">
+        {% for user in users %}
+        <option value="{{ user.id }}">{{ user.full_name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Редактировать</button>
+</form>
+{% endblock %}

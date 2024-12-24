@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block lab %}История транзакций{% endblock %}
+
+{% block main %}
+    <h1>История транзакций</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID Транзакции</th>
+                <th>Отправитель</th>
+                <th>Получатель</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.id }}</td>
+                    <td>{{ transaction.sender_id }}</td>
+                    <td>{{ transaction.receiver_id }}</td>
+                    <td>{{ transaction.amount }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
