@@ -3,29 +3,29 @@
 {% block lab %}Создание пользователя{% endblock %}
 
 {% block main %}
-    <h1>Создание нового пользователя</h1>
-    <form method="POST">
-        <label for="full_name">ФИО:</label>
-        <input type="text" id="full_name" name="full_name" required><br><br>
+<h1>Создание нового пользователя</h1>
+<form method="POST">
+    <label for="full_name">ФИО:</label>
+    <input type="text" id="full_name" name="full_name" required><br><br>
 
-        <label for="username">Логин:</label>
-        <input type="text" id="username" name="username" required><br><br>
+    <label for="username">Логин:</label>
+    <input type="text" id="username" name="username" required><br><br>
 
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" name="password" required><br><br>
+    <label for="password">Пароль:</label>
+    <input type="password" id="password" name="password" required><br><br>
 
-        <label for="phone">Телефон:</label>
-        <input type="text" id="phone" name="phone" required><br><br>
+    <label for="phone">Телефон:</label>
+    <input type="text" id="phone" name="phone" required><br><br>
 
-        <label for="account_number">Номер счёта:</label>
-        <input type="text" id="account_number" name="account_number" required><br><br>
+    <label for="account_number">Номер счёта:</label>
+    <input type="text" id="account_number" name="account_number" required><br><br>
 
-        <label for="user_type">Тип пользователя:</label>
-        <select id="user_type" name="user_type">
-            <option value="client">Клиент</option>
-            <option value="manager">Менеджер</option>
-        </select><br><br>
+    <label for="user_type">Тип пользователя:</label>
+    <select id="user_type" name="user_type">
+        <option value="client">Клиент</option>
+        <option value="manager">Менеджер</option>
+    </select><br><br>
 
-        <button type="submit">Создать пользователя</button>
-    </form>
+    <button type="submit">Создать пользователя</button>
+</form>
 {% endblock %}

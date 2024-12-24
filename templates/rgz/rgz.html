@@ -4,7 +4,7 @@
 
 {% block main %}
 <h1>База знаний</h1>
-<p>Добро пожаловать, {{ login if login else 'Anonymous' }}!</p>
+<p>Добро пожаловать</p>
 <ol>
     <li><a href="{{ url_for('rgz.login') }}">Вход</a></li>
     <li><a href="{{ url_for('rgz.dashboard') }}">Перевод средств</a></li>
@@ -13,6 +13,6 @@
     {% if session.user_type == 'manager' %}
     <li><a href="{{ url_for('rgz.create_user') }}">Создать нового пользователя</a></li>
     <li><a href="{{ url_for('rgz.select_user') }}">Редактировать пользователя</a></li>
-        {% endif %}
+    {% endif %}
 </ol>
 {% endblock %}

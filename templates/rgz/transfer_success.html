@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block lab %}
-{% endblock %}
+{% block lab %}Успешный перевод{% endblock %}
 
 {% block main %}
-    <div class="transfer-success">
-        <h2>Перевод успешно выполнен!</h2>
-        <p>Средства были успешно переведены на указанный счет.</p>
-    </div>
+<div class="transfer-success">
+    <h2>Перевод успешно выполнен!</h2>
+    <p>Средства были успешно переведены на указанный счет.</p>
+    <a href="{{ url_for('rgz.dashboard') }}">Вернуться на панель управления</a>
+</div>
 {% endblock %}
