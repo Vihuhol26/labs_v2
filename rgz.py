@@ -2,24 +2,11 @@ from flask import Flask, Blueprint, render_template, request, redirect, url_for,
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from functools import wraps
-from jsonrpcserver import method, Success, Error, dispatch
 
 rgz = Blueprint('rgz', __name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'секретный-секрет'
-
-@method
-def get_user(user_id: int):
-    conn, cur = db_connect()
-    cur.execute("SELECT id, full_name FROM users WHERE id=%s", (user_id,))
-    user = cur.fetchone()
-    db_close(conn, cur)
-
-    if user:
-        return Success(user)
-    else:
-        return Error(code=404, message="Пользователь не найден")
 
 def db_connect():
     conn = psycopg2.connect(
@@ -241,44 +228,6 @@ def users():
 def logout():
     session.clear()
     return redirect(url_for('rgz.login'))
-
-@rgz.route('/api/jsonrpc', methods=['POST'])
-def jsonrpc():
-    request_data = request.get_data().decode()
-    response = dispatch(request_data)
-
-    if response.succeeded:
-        return jsonify(response.result)
-    else:
-        return jsonify(response.error), response.http_status
-
-@method
-def get_users():
-    conn, cur = db_connect()
-    cur.execute("SELECT id, full_name FROM users")
-    users = cur.fetchall()
-    db_close(conn, cur)
-    return Success(users)
-
-@method
-def create_user_rpc(full_name: str, username: str, password: str, phone: str, account_number: str, user_type: str):
-    balance = 1000
-    conn, cur = db_connect()
-    cur.execute("INSERT INTO users (full_name, username, password, phone, account_number, balance, user_type) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (full_name, username, password, phone, account_number, balance, user_type))
-    conn.commit()
-    db_close(conn, cur)
-    return Success(message="Пользователь успешно создан")
-
-@method
-def delete_user_rpc(user_id: int):
-    if user_id == session.get('user_id'):
-        return Error(code=403, message="Вы не можете удалить сами себя")
-
-    conn, cur = db_connect()
-    cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
-    db_close(conn, cur)
-    return Success(message="Пользователь успешно удален")
 
 if __name__ == "__main__":
     app.run()
