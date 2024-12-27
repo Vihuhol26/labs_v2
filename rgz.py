@@ -28,10 +28,10 @@ def db_connect():
             client_encoding='UTF8'
         )
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        print("Подключение к базе данных успешно установлено!")  # Отладочное сообщение
+        logging.debug("Подключение к базе данных успешно установлено!")
         return conn, cur
     except psycopg2.Error as e:
-        print(f"Ошибка подключения к базе данных: {e}")  # Отладочное сообщение
+        logging.error(f"Ошибка подключения к базе данных: {e}")
         return None, None
 
 # Закрытие соединения с базой данных
@@ -96,6 +96,7 @@ def dashboard():
     return render_template('rgz/dashboard.html', user=user)
 
 # Авторизация пользователя
+
 @rgz.route('/rgz/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -106,21 +107,28 @@ def login():
         password = data.get('password')
 
         conn, cur = db_connect()
-        cur.execute("SELECT * FROM users WHERE username=%s", (username,))
-        user = cur.fetchone()
-        db_close(conn, cur)
+        if cur is None:
+            return json.dumps({"error": "Ошибка подключения к базе данных"}), 500, {'Content-Type': 'application/json'}
 
-        if user is None:
-            return json.dumps({"error": "Пользователь не найден"}), 404, {'Content-Type': 'application/json'}
+        try:
+            cur.execute("SELECT * FROM users WHERE username=%s", (username,))
+            user = cur.fetchone()
+            db_close(conn, cur)
 
-        if user['password'] == password:
-            session['user_id'] = user['id']
-            session['username'] = username
-            session['user_type'] = user['user_type']  # Сохраняем тип пользователя
-            print("Данные сессии после авторизации:", session)  # Отладочный вывод
-            return json.dumps({"message": "Авторизация успешна", "redirect": url_for('rgz.dashboard')}), 200, {'Content-Type': 'application/json'}
-        return json.dumps({"error": "Неверный пароль"}), 401, {'Content-Type': 'application/json'}
+            if user is None:
+                return json.dumps({"error": "Пользователь не найден"}), 404, {'Content-Type': 'application/json'}
 
+            if user['password'] == password:
+                session['user_id'] = user['id']
+                session['username'] = username
+                session['user_type'] = user['user_type']
+                logging.debug("Данные сессии после авторизации: %s", session)
+                return json.dumps({"message": "Авторизация успешна", "redirect": url_for('rgz.dashboard')}), 200, {'Content-Type': 'application/json'}
+            return json.dumps({"error": "Неверный пароль"}), 401, {'Content-Type': 'application/json'}
+        except Exception as e:
+            logging.error(f"Ошибка при выполнении запроса: {e}")
+            return json.dumps({"error": "Ошибка сервера"}), 500, {'Content-Type': 'application/json'}
+        
 @rgz.route('/rgz/transfer', methods=['GET', 'POST'])
 def transfer():
     if 'user_id' not in session:  # Проверка авторизации на сервере
