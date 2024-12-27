@@ -3,22 +3,37 @@
 {% block lab %}Панель управления{% endblock %}
 
 {% block main %}
-<h2>Добро пожаловать, {{ user.full_name }}!</h2>
-<p>Ваш баланс: {{ user.balance }}</p>
+    <h1>Панель управления</h1>
 
-<h2>Перевод средств</h2>
-<form method="POST" action="{{ url_for('rgz.transfer') }}">
-    <label for="receiver_id">ID получателя:</label>
-    <input type="number" name="receiver_id" id="receiver_id" required>
-    <br><br>
+    {% if 'user_id' not in session %}
+        <div>
+            <button onclick="window.location.href='{{ url_for('rgz.login') }}';">Войти</button>
+        </div>
+    {% else %}
+        <div id="user-info">
+            <p>Добро пожаловать, {{ user.username }}!</p>
+            <p>Баланс: {{ user.balance }}</p>
+        </div>
 
-    <label for="amount">Сумма:</label>
-    <input type="number" name="amount" step="0.01" required>
-    <br><br>
+        <button onclick="window.location.href='{{ url_for('rgz.transaction_history') }}';">История транзакций</button>
+        <button onclick="window.location.href='{{ url_for('rgz.transfer') }}';">Перевод средств</button>
 
-    <button type="submit">Перевести</button>
-</form>
+        {% if user.user_type == 'manager' %}
+            <button onclick="window.location.href='{{ url_for('rgz.create_user') }}';">Создать пользователя</button>
+            <button onclick="window.location.href='{{ url_for('rgz.manage_users') }}';">Управление пользователями</button>
+        {% endif %}
 
-<h2>История транзакций</h2>
-<a href="{{ url_for('rgz.transaction_history') }}">Посмотреть историю транзакций</a>
+        <button onclick="logout();">Выйти</button>
+    {% endif %}
+
+    <script>
+        function logout() {
+            fetch("{{ url_for('rgz.logout') }}", { method: 'POST', credentials: 'include' })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = "{{ url_for('rgz.login') }}";
+                    }
+                });
+        }
+    </script>
 {% endblock %}

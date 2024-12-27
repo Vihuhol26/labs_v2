@@ -1,19 +1,42 @@
 {% extends "base.html" %}
 
-{% block lab %}Вход в систему{% endblock %}
+{% block lab %}Вход{% endblock %}
 
 {% block main %}
-<h1>Вход в систему</h1>
-{% if error %}
-<p style="color: red;">{{ error }}</p>
-{% endif %}
-<form method="POST" action="{{ url_for('rgz.login') }}">
-    <label for="username">Логин:</label>
-    <input type="text" name="username" required>
-    <br>
-    <label for="password">Пароль:</label>
-    <input type="password" name="password" required>
-    <br>
-    <button type="submit">Войти</button>
-</form>
+    <h1>Вход</h1>
+
+    <form onsubmit="login(event)">
+        <label>
+            Логин:
+            <input type="text" id="username" required>
+        </label><br>
+        <label>
+            Пароль:
+            <input type="password" id="password" required>
+        </label><br>
+        <button type="submit">Войти</button>
+    </form>
+
+    <div id="login-error" class="error-message"></div>
+
+    <script>
+        async function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch("{{ url_for('rgz.login') }}", {  // Используем url_for
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                window.location.href = "{{ url_for('rgz.dashboard') }}";  // Используем url_for
+            } else {
+                document.getElementById('login-error').innerText = result.error || 'Ошибка при авторизации';
+            }
+        }
+    </script>
 {% endblock %}

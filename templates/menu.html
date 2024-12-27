@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block lab %}Лабораторные работы {% endblock %}
+{% block lab %}Лабораторные работы{% endblock %}
 
 {% block main %}
-<h1>База знаний</h1>
-<p>Добро пожаловать</p>
-<ol>
-    <li><a href="{{ url_for('lab1.lab') }}">Первая лабораторная</a></li>
-    <li><a href="{{ url_for('lab2.lab') }}">Вторая лабораторная</a></li>
-    <li><a href="{{ url_for('lab3.lab') }}">Третья лабораторная</a></li>
-    <li><a href="{{ url_for('lab4.lab') }}">Четвертая лабораторная</a></li>
-    <li><a href="{{ url_for('lab5.lab') }}">Пятая лабораторная</a></li>
-    <li><a href="{{ url_for('lab6.main') }}">Шестая лабораторная</a></li>
-    <li><a href="{{ url_for('lab7.lab') }}">Седьмая лабораторная</a></li>
-    <li><a href="{{ url_for('rgz.lab') }}">РГЗ</a></li>
-</ol>
+    <h1>База знаний</h1>
+    <p>Добро пожаловать</p>
+    <ol>
+        <li><a href="{{ url_for('lab1.lab') }}">Первая лабораторная</a></li>
+        <li><a href="{{ url_for('lab2.lab') }}">Вторая лабораторная</a></li>
+        <li><a href="{{ url_for('lab3.lab') }}">Третья лабораторная</a></li>
+        <li><a href="{{ url_for('lab4.lab') }}">Четвертая лабораторная</a></li>
+        <li><a href="{{ url_for('lab5.lab') }}">Пятая лабораторная</a></li>
+        <li><a href="{{ url_for('lab6.main') }}">Шестая лабораторная</a></li>
+        <li><a href="{{ url_for('lab7.lab') }}">Седьмая лабораторная</a></li>
+        <li><a href="{{ url_for('rgz.dashboard') }}">РГЗ</a></li>
+    </ol>
 {% endblock %}

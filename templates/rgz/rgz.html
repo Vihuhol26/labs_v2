@@ -1,18 +1,68 @@
 {% extends "base.html" %}
 
-{% block lab %}Расчетно-графическое задание{% endblock %}
+{% block lab %}РГЗ{% endblock %}
+
+{% block script %}
+<script src="{{ url_for('static', filename='rgz/main.js') }}"></script>
+{% endblock %}
 
 {% block main %}
-<h1>База знаний</h1>
-<p>Добро пожаловать</p>
-<ol>
-    <li><a href="{{ url_for('rgz.login') }}">Вход</a></li>
-    <li><a href="{{ url_for('rgz.dashboard') }}">Перевод средств</a></li>
-    <li><a href="{{ url_for('rgz.transaction_history') }}">История транзакций</a></li>
-    <li><a href="{{ url_for('rgz.logout') }}">Выйти</a></li>
-    {% if session.user_type == 'manager' %}
-    <li><a href="{{ url_for('rgz.create_user') }}">Создать нового пользователя</a></li>
-    <li><a href="{{ url_for('rgz.select_user') }}">Редактировать пользователя</a></li>
-    {% endif %}
-</ol>
+    <h1>Список пользователей</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Логин</th>
+                <th>Телефон</th>
+                <th>Баланс</th>
+                <th>Тип пользователя</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody id="user-list"></tbody>
+    </table>
+
+    <script>
+        // Используем url_for для передачи маршрутов в JavaScript
+        const apiUrl = "{{ url_for('rgz.api') }}";  // Пример маршрута для API
+        fillUserList(apiUrl);
+    </script>
+
+    <div>
+        <button onclick="addUser()">Добавить пользователя</button>
+    </div>
+
+    <div class="modal">
+        <input type="hidden" id="id">
+        <label>
+            ФИО:
+            <input type="text" id="full-name">
+        </label><br>
+        <label>
+            Логин:
+            <input type="text" id="username">
+        </label><br>
+        <label>
+            Пароль:
+            <input type="password" id="password">
+        </label><br>
+        <label>
+            Телефон:
+            <input type="text" id="phone">
+        </label><br>
+        <label>
+            Номер счета:
+            <input type="text" id="account-number">
+        </label><br>
+        <label>
+            Тип пользователя:
+            <select id="user-type">
+                <option value="user">Пользователь</option>
+                <option value="manager">Менеджер</option>
+            </select>
+        </label><br>
+        <button onclick="sendUser()">OK</button>
+        <button onclick="cancel()">Отмена</button>
+    </div>
 {% endblock %}

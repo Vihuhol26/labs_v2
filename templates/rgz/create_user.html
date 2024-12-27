@@ -1,31 +1,81 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block lab %}Создание пользователя{% endblock %}
 
 {% block main %}
-<h1>Создание нового пользователя</h1>
-<form method="POST">
-    <label for="full_name">ФИО:</label>
-    <input type="text" id="full_name" name="full_name" required><br><br>
+    <h1>Создание пользователя</h1>
 
-    <label for="username">Логин:</label>
-    <input type="text" id="username" name="username" required><br><br>
+    <form onsubmit="createUser(event)">
+        <label>
+            ФИО:
+            <input type="text" id="full-name" required>
+        </label><br>
+        <label>
+            Логин:
+            <input type="text" id="username" required>
+        </label><br>
+        <label>
+            Пароль:
+            <input type="password" id="password" required>
+        </label><br>
+        <label>
+            Телефон:
+            <input type="text" id="phone">
+        </label><br>
+        <label>
+            Номер счета:
+            <input type="text" id="account-number">
+        </label><br>
+        <label>
+            Баланс:
+            <input type="number" id="balance" value="0">
+        </label><br>
+        <label>
+            Тип пользователя:
+            <select id="user-type">
+                <option value="user">Клиент</option>
+                <option value="manager">Менеджер</option>
+            </select>
+        </label><br>
+        <button type="submit">Создать</button>
+    </form>
 
-    <label for="password">Пароль:</label>
-    <input type="password" id="password" name="password" required><br><br>
+    <div id="create-user-result"></div>
 
-    <label for="phone">Телефон:</label>
-    <input type="text" id="phone" name="phone" required><br><br>
+    <script>
+        async function createUser(event) {
+            event.preventDefault();
+            const fullName = document.getElementById('full-name').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const phone = document.getElementById('phone').value;
+            const accountNumber = document.getElementById('account-number').value;
+            const balance = document.getElementById('balance').value;
+            const userType = document.getElementById('user-type').value;
 
-    <label for="account_number">Номер счёта:</label>
-    <input type="text" id="account_number" name="account_number" required><br><br>
+            const baseUrl = window.location.origin; // Получаем базовый URL текущего сайта
+            const endpoint = '/rgz/users'; // Относительный путь к endpoint
 
-    <label for="user_type">Тип пользователя:</label>
-    <select id="user_type" name="user_type">
-        <option value="client">Клиент</option>
-        <option value="manager">Менеджер</option>
-    </select><br><br>
+            const response = await fetch(baseUrl + endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    full_name: fullName,
+                    username: username,
+                    password: password,
+                    phone: phone,
+                    account_number: accountNumber,
+                    balance: balance,
+                    user_type: userType
+                })
+            });
 
-    <button type="submit">Создать пользователя</button>
-</form>
+            const result = await response.json();
+            if (response.ok) {
+                document.getElementById('create-user-result').innerText = 'Пользователь успешно создан';
+            } else {
+                document.getElementById('create-user-result').innerText = result.error || 'Ошибка при создании пользователя';
+            }
+        }
+    </script>
 {% endblock %}

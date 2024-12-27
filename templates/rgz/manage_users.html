@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block lab %}Управление пользователями{% endblock %}
+
+{% block main %}
+    <h1>Управление пользователями</h1>
+
+    <div id="user-list">
+        <!-- Сюда будут добавляться пользователи -->
+    </div>
+
+    <button onclick="window.location.href='./dashboard'">Назад</button> <!-- Используем относительный путь -->
+
+    <script>
+        // Загружаем список пользователей при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function () {
+            loadUsers();
+        });
+
+        // Функция для загрузки списка пользователей
+        async function loadUsers() {
+            const baseUrl = window.location.origin; // Получаем базовый URL текущего сайта
+            const endpoint = '/rgz/users'; // Относительный путь к endpoint
+
+            const response = await fetch(baseUrl + endpoint);
+            const data = await response.json();
+
+            if (data.error) {
+                alert(data.error);
+            } else {
+                const userList = document.getElementById('user-list');
+                userList.innerHTML = '<h3>Список пользователей:</h3>';
+                data.users.forEach(user => {  // Используем data.users
+                    userList.innerHTML += `
+                        <p>${user.full_name} (Баланс: ${user.balance} ₽) 
+                        <button onclick="editUser(${user.id})">Редактировать</button> 
+                        <button onclick="deleteUser(${user.id})">Удалить</button></p>
+                    `;
+                });
+            }
+        }
+
+        // Функция для редактирования пользователя
+        async function editUser(userId) {
+            const fullName = prompt('Введите новое имя:');
+            const balance = prompt('Введите новый баланс:');
+            
+            const baseUrl = window.location.origin; // Получаем базовый URL текущего сайта
+            const endpoint = `/rgz/users/${userId}`; // Относительный путь к endpoint
+
+            const response = await fetch(baseUrl + endpoint, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ full_name: fullName, balance })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('Пользователь успешно отредактирован');
+                loadUsers();
+            }
+        }
+
+        // Функция для удаления пользователя
+        async function deleteUser(userId) {
+            const baseUrl = window.location.origin; // Получаем базовый URL текущего сайта
+            const endpoint = `/rgz/users/${userId}`; // Относительный путь к endpoint
+
+            const response = await fetch(baseUrl + endpoint, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('Пользователь успешно удален');
+                loadUsers();
+            }
+        }
+    </script>
+{% endblock %}
