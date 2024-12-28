@@ -1,0 +1,16 @@
+{%extends "base.html"%}
+
+{% block lab %} Лабораторная работа 8 {% endblock %}
+
+{%block main%}
+    <h1>Flask и ORM</h1>
+    <p>Привет, {% if session.get('login') %}{{ session['login'] }}{% else %}Anonymous{% endif %}!</p>
+
+    <ol>
+        <li><a href="/lab8/login">Войти</a></li>
+        <li><a href="/lab8/register">Регистрация</a></li>
+        <li><a href="/lab8/articles">Статьи</a></li>
+        <li><a href="/lab8/create">Создать статью</a></li>
+        <li><a href="/lab8/logout">Выйти</a></li>
+    </ol>
+{%endblock%}

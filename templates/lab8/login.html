@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block lab %}Лабораторная работа 8{% endblock %}
+
+{% block main %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* Занимает всю высоту экрана */
+        flex-direction: column; /* Элементы выстраиваются вертикально */
+        justify-content: center;
+        min-height: 100vh; /* Высота страницы равна высоте экрана */
+    }
+
+    form {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 320px;
+        margin: 60px auto; /* Центрирование по горизонтали */
+        margin-top: 60px; /* Отступ сверху, чтобы форма не накладывалась на header */
+        margin-bottom: 60px; /* Отступ снизу, чтобы форма не накладывалась на footer */
+    }
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #555;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: 90%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        padding: 10px;
+        background-color: #1d721c;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #2fb026;
+    }
+</style>
+    <h1>Вход в систему</h1>
+    {% if error %}
+        <div style="color: red;">{{ error }}</div>
+    {% endif %}
+    <form action="/lab8/login" method="post">
+        <div>
+            <label>
+                Логин: <input type="text" name="login">
+            </label>
+        </div>
+        <div>
+            <label>
+                Пароль: <input type="password" name="password">
+            </label>
+        </div>      
+        <div>
+            <label>
+                <input type="checkbox" id="remember" name="remember"> Запомнить меня
+            </label>
+        </div>   
+        <button type="submit">Вход</button>
+    </form>
+    
+{% endblock %}

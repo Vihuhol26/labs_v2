@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block lab %}Лабораторная работа 8{% endblock %}
+
+{% block main %}
+<style>
+    form {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #555;
+    }
+
+    input[type="text"],
+    textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 1em;
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    input[type="checkbox"] {
+        margin-right: 10px;
+    }
+
+    button {
+        background-color: #318d2b;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        font-size: 1em;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #218f1f;
+    }
+</style>
+<h1>Редактирование статьи</h1>
+<form method="POST">
+    <label for="title">Заголовок:</label>
+    <input type="text" id="title" name="title" value="{{ article.title }}" required>
+    
+    <label for="article_text">Содержание:</label>
+    <textarea id="article_text" name="article_text" required>{{ article.article_text }}</textarea>
+    
+    <button type="submit">Сохранить изменения</button>
+</form>
+<a href="/lab8/articles/">Вернуться к списку статей</a>
+{% endblock %}

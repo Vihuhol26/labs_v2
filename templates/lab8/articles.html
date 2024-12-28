@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block lab %}Лабораторная работа 8{% endblock %}
+
+{% block main %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    h1 {
+        color: #444;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    a {
+        color: #007BFF;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+        max-width: 800px;
+        margin: 20px auto;
+    }
+
+    li {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .article-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .article-text {
+        font-size: 1em;
+        color: #666;
+        margin-bottom: 15px;
+    }
+
+    .article-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .button-link {
+        background-color: #2f602a;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 3px;
+        text-align: center;
+    }
+
+    .button-link:hover {
+        background-color: #104800;
+        text-decoration: none;
+    }
+
+    .create {
+        background-color: #80c878;
+        color: #fff;
+        padding: 5px 10px;
+        text-align: center;
+        display: block; /* Делаем кнопку блочным элементом */
+        margin: 0 auto; /* Центрируем по горизонтали */
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 1em;
+    }
+
+    .create:hover {
+        background-color: #104800;
+        text-decoration: none;
+    }
+
+    .delete-button {
+        background-color: #94353e;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 3px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .delete-button:hover {
+        background-color: #c82333;
+        text-decoration: none;
+    }
+
+    p {
+        text-align: center;
+        color: #666;
+    }
+</style>
+<h1>Мои статьи</h1>
+<button class = 'create' href="/lab8/create/">Создать новую статью</button>
+
+{% if articles %}
+    <ul>
+        {% for article in articles %}
+            <li>
+                <div class="article-title">{{ article.title }}</div>
+                <div class="article-text">{{ article.article_text }}</div>
+                <div class="article-actions">
+                    <a href="/lab8/articles/edit/{{ article.id }}" class="button-link">Редактировать</a>
+                    <a href="/lab8/articles/delete/{{ article.id }}" class="delete-button" onclick="return confirmDelete()">Удалить</a>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>У вас пока нет статей.</p>
+{% endif %}
+{% endblock %}

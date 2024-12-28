@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block lab %}Лабораторная работа 8{% endblock %}
+
+{% block main %}
+<style>
+    form {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #555;
+    }
+
+    input[type="text"],
+    textarea {
+        width: 90%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 1em;
+    }
+    input[type="checkbox"] {
+    margin-left: 10px;
+}
+
+    textarea {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .checkbox-container label {
+        margin-right: 10px; /* Расстояние между текстом и checkbox */
+    }
+
+    button {
+        background-color: #3f9729;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        font-size: 1em;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #258d1b;
+    }
+</style>
+    <h1>Создание статьи</h1>
+    <form method="POST">
+        <div>
+            <label for="title">Заголовок:</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        <div>
+            <label for="article_text">Содержание:</label>
+            <textarea id="article_text" name="article_text" required></textarea>
+        </div>
+        <div class="checkbox-container">
+            <label for="is_favorite">Избранное:</label>
+            <input type="checkbox" id="is_favorite" name="is_favorite">
+        </div>
+        <div class="checkbox-container">
+            <label for="is_public">Публичная статья:</label> 
+            <input type="checkbox" id="is_public" name="is_public">
+        </div>
+        <div>
+            <button type="submit">Создать статью</button>
+        </div>
+    </form>
+{% endblock %}
