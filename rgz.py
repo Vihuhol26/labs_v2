@@ -7,6 +7,7 @@ from decimal import Decimal
 import requests
 import os
 import logging
+import sqlite3
 
 # Создаем Blueprint
 rgz = Blueprint('rgz', __name__)
@@ -20,18 +21,13 @@ def decimal_default(obj):
 # Подключение к базе данных
 def db_connect():
     try:
-        conn = psycopg2.connect(
-            host='127.0.0.1',
-            database='knowledge_base',
-            user='knowledge_base',
-            password='123',
-            client_encoding='UTF8'
-        )
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        logging.debug("Подключение к базе данных успешно установлено!")
+        conn = sqlite3.connect('/home/Vihuhol/labs_v2/database.db')
+        conn.row_factory = sqlite3.Row  # Для возврата строк в виде словарей
+        cur = conn.cursor()
+        print("Подключение к базе данных успешно установлено!")
         return conn, cur
-    except psycopg2.Error as e:
-        logging.error(f"Ошибка подключения к базе данных: {e}")
+    except sqlite3.Error as e:
+        print(f"Ошибка подключения к базе данных: {e}")
         return None, None
 
 # Закрытие соединения с базой данных
@@ -97,7 +93,7 @@ def dashboard():
 
 # Авторизация пользователя
 
-@rgz.route('/rgz/login', methods=['GET', 'POST'])
+@app.route('/rgz/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
         return render_template('rgz/login.html')
@@ -111,9 +107,9 @@ def login():
             return json.dumps({"error": "Ошибка подключения к базе данных"}), 500, {'Content-Type': 'application/json'}
 
         try:
-            cur.execute("SELECT * FROM users WHERE username=%s", (username,))
+            cur.execute("SELECT * FROM users WHERE username=?", (username,))
             user = cur.fetchone()
-            db_close(conn, cur)
+            conn.close()
 
             if user is None:
                 return json.dumps({"error": "Пользователь не найден"}), 404, {'Content-Type': 'application/json'}
@@ -122,11 +118,11 @@ def login():
                 session['user_id'] = user['id']
                 session['username'] = username
                 session['user_type'] = user['user_type']
-                logging.debug("Данные сессии после авторизации: %s", session)
-                return json.dumps({"message": "Авторизация успешна", "redirect": url_for('rgz.dashboard')}), 200, {'Content-Type': 'application/json'}
+                print("Данные сессии после авторизации:", dict(user))
+                return json.dumps({"message": "Авторизация успешна", "redirect": url_for('dashboard')}), 200, {'Content-Type': 'application/json'}
             return json.dumps({"error": "Неверный пароль"}), 401, {'Content-Type': 'application/json'}
-        except Exception as e:
-            logging.error(f"Ошибка при выполнении запроса: {e}")
+        except sqlite3.Error as e:
+            print(f"Ошибка при выполнении запроса: {e}")
             return json.dumps({"error": "Ошибка сервера"}), 500, {'Content-Type': 'application/json'}
         
 @rgz.route('/rgz/transfer', methods=['GET', 'POST'])
