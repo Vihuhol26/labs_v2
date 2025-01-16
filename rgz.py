@@ -7,7 +7,7 @@ from decimal import Decimal
 import requests
 import os
 import logging
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_user, logout_user, login_required, current_user, UserMixin
 
 # Создаем Blueprint
 rgz = Blueprint('rgz', __name__)
@@ -51,6 +51,7 @@ def manager_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 @rgz.route('/jsonrpc', methods=['POST'])
 def jsonrpc():
     data = request.get_json()
@@ -76,7 +77,7 @@ def jsonrpc():
 @rgz.route('/rgz/dashboard')
 @login_required
 def dashboard():
-    user_id = current_user.id
+    user_id = current_user.id  # Используем current_user
     conn, cur = db_connect()
     cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
     user = cur.fetchone()
@@ -88,11 +89,9 @@ def dashboard():
     return render_template('rgz/dashboard.html', user=user)
 
 # Авторизация пользователя
-@rgz.route('/rgz/login', methods=['GET', 'POST'])
+@rgz.route('/rgz/login', methods=['POST'])
 def login():
-    if request.method == 'GET':
-        return render_template('rgz/login.html')
-    elif request.method == 'POST':
+    if request.method == 'POST':
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
@@ -103,20 +102,31 @@ def login():
 
         try:
             cur.execute("SELECT * FROM users WHERE username=%s", (username,))
-            user = cur.fetchone()
+            user_dict = cur.fetchone()
             db_close(conn, cur)
 
-            if user is None:
+            if user_dict is None:
                 return jsonify({"error": "Пользователь не найден"}), 404
 
-            if user['password'] == password:
-                login_user(user)  # Авторизация через flask_login
-                logging.debug("Данные сессии после авторизации: %s", current_user)
+            if user_dict['password'] == password:
+                user = User(user_dict)  # Создаем объект User
+                login_user(user)  # Авторизуем пользователя
                 return jsonify({"message": "Авторизация успешна", "redirect": url_for('rgz.dashboard')}), 200
             return jsonify({"error": "Неверный пароль"}), 401
         except Exception as e:
             logging.error(f"Ошибка при выполнении запроса: {e}")
             return jsonify({"error": "Ошибка сервера"}), 500
+
+@login_manager.user_loader
+def load_user(user_id):
+    conn, cur = db_connect()
+    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user_dict = cur.fetchone()
+    db_close(conn, cur)
+
+    if user_dict:
+        return User(user_dict)
+    return None
 
 @rgz.route('/rgz/transfer', methods=['GET', 'POST'])
 @login_required
