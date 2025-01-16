@@ -237,7 +237,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 @rgz.route('/rgz/transaction_history')
 def transaction_history():
-    # Проверка авторизации пользователя
     if 'user_id' not in session:
         logging.warning("Пользователь не авторизован")
         return redirect(url_for('rgz.login'))
@@ -246,9 +245,9 @@ def transaction_history():
     logging.debug(f"Запрос истории транзакций для пользователя: {user_id}")
 
     try:
-        # Вызов JSON-RPC метода get_transaction_history
+        # Используем относительный URL
         response = requests.post(
-            'http://127.0.0.1:5000/jsonrpc',
+            '/jsonrpc',  
             json={
                 "jsonrpc": "2.0",
                 "method": "get_transaction_history",
@@ -257,11 +256,6 @@ def transaction_history():
             }
         )
 
-        # Логирование ответа
-        logging.debug(f"Статус ответа: {response.status_code}")
-        logging.debug(f"Содержимое ответа: {response.text}")
-
-        # Проверка статуса ответа
         if response.status_code != 200:
             logging.error(f"Ошибка сервера: {response.status_code}")
             return Response(
@@ -270,27 +264,7 @@ def transaction_history():
                 mimetype='application/json'
             )
 
-        # Проверка содержимого ответа
-        if not response.text:
-            logging.error("Пустой ответ от сервера")
-            return Response(
-                json.dumps({"error": "Пустой ответ от сервера"}),
-                status=500,
-                mimetype='application/json'
-            )
-
-        # Декодирование JSON
-        try:
-            data = response.json()
-        except ValueError as e:
-            logging.error(f"Ошибка при декодировании JSON: {str(e)}")
-            return Response(
-                json.dumps({"error": f"Ошибка при декодировании JSON: {str(e)}"}),
-                status=500,
-                mimetype='application/json'
-            )
-
-        # Проверка наличия ошибки в ответе
+        data = response.json()
         if 'error' in data:
             logging.error(f"Ошибка JSON-RPC: {data['error']}")
             return Response(
@@ -299,7 +273,6 @@ def transaction_history():
                 mimetype='application/json'
             )
 
-        # Получение транзакций
         transactions = data['result']['transactions']
         logging.debug(f"Получено транзакций: {len(transactions)}")
         return render_template('rgz/transaction_history.html', transactions=transactions)
@@ -311,6 +284,7 @@ def transaction_history():
             status=500,
             mimetype='application/json'
         )
+        
 # Выход из системы
 @rgz.route('/rgz/logout', methods=['POST'])
 def logout():
