@@ -7,10 +7,34 @@ from decimal import Decimal
 import requests
 import os
 import logging
-from flask_login import login_user, logout_user, login_required, current_user, UserMixin
+from flask_login import login_user, logout_user, login_required, current_user, UserMixin, LoginManager
 
 # Создаем Blueprint
 rgz = Blueprint('rgz', __name__)
+
+# Инициализация LoginManager
+login_manager = LoginManager()
+login_manager.login_view = 'rgz.login'  # Указываем страницу для авторизации
+
+# Класс пользователя
+class User(UserMixin):
+    def __init__(self, user_dict):
+        self.id = user_dict['id']
+        self.username = user_dict['username']
+        self.user_type = user_dict['user_type']
+        self.is_active = True  # Убедитесь, что этот атрибут есть
+
+# Загрузчик пользователя
+@login_manager.user_loader
+def load_user(user_id):
+    conn, cur = db_connect()
+    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user_dict = cur.fetchone()
+    db_close(conn, cur)
+
+    if user_dict:
+        return User(user_dict)
+    return None
 
 # Кастомный сериализатор для Decimal
 def decimal_default(obj):
@@ -50,7 +74,6 @@ def manager_required(f):
             return jsonify({"error": "Доступ запрещен"}), 403
         return f(*args, **kwargs)
     return decorated_function
-
 
 @rgz.route('/jsonrpc', methods=['POST'])
 def jsonrpc():
@@ -116,17 +139,6 @@ def login():
         except Exception as e:
             logging.error(f"Ошибка при выполнении запроса: {e}")
             return jsonify({"error": "Ошибка сервера"}), 500
-
-@login_manager.user_loader
-def load_user(user_id):
-    conn, cur = db_connect()
-    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-    user_dict = cur.fetchone()
-    db_close(conn, cur)
-
-    if user_dict:
-        return User(user_dict)
-    return None
 
 @rgz.route('/rgz/transfer', methods=['GET', 'POST'])
 @login_required

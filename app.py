@@ -22,6 +22,8 @@ from lab7 import lab7
 from lab8 import lab8
 from rgz import rgz
 
+login_manager.init_app(app)
+
 app.register_blueprint(lab1)
 app.register_blueprint(lab2)
 app.register_blueprint(lab3)
