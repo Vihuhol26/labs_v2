@@ -1,7 +1,7 @@
 from flask import Blueprint, request, session, redirect, url_for, Response, render_template
 from functools import wraps
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import pymysql
+from pymysql.cursors import DictCursor
 import json
 from decimal import Decimal
 import requests
@@ -17,20 +17,21 @@ def decimal_default(obj):
         return float(obj)  # Преобразуем Decimal в float
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
-# Подключение к базе данных
+# Подключение к базе данных MySQL
 def db_connect():
     try:
-        conn = psycopg2.connect(
-            host='127.0.0.1',
-            database='knowledge_base',
-            user='knowledge_base',
-            password='123',
-            client_encoding='UTF8'
+        conn = pymysql.connect(
+            host='Vihuhol.mysql.pythonanywhere-services.com',  # Хост
+            user='Vihuhol',  # Пользователь
+            password='Qwerty220140',  # Пароль
+            database='Vihuhol$default',  # Имя базы данных
+            charset='utf8mb4',
+            cursorclass=DictCursor
         )
-        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur = conn.cursor()
         logging.debug("Подключение к базе данных успешно установлено!")
         return conn, cur
-    except psycopg2.Error as e:
+    except pymysql.Error as e:
         logging.error(f"Ошибка подключения к базе данных: {e}")
         return None, None
 
@@ -96,7 +97,6 @@ def dashboard():
     return render_template('rgz/dashboard.html', user=user)
 
 # Авторизация пользователя
-
 @rgz.route('/rgz/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -157,22 +157,33 @@ def transfer():
 
     conn, cur = db_connect()
     try:
+        # Находим получателя по номеру телефона
         cur.execute("SELECT id FROM users WHERE phone = %s", (receiver_phone,))
         receiver = cur.fetchone()
         if not receiver:
             response_data = json.dumps({"error": "Получатель не найден"})
             return Response(response_data, status=404, mimetype='application/json')
 
+        receiver_id = receiver['id']
+
+        # Проверяем баланс отправителя
         cur.execute("SELECT balance FROM users WHERE id = %s", (sender_id,))
         sender_balance = cur.fetchone()['balance']
         if sender_balance < amount:
             response_data = json.dumps({"error": "Недостаточно средств"})
             return Response(response_data, status=400, mimetype='application/json')
 
+        # Обновляем балансы
         cur.execute("UPDATE users SET balance = balance - %s WHERE id = %s", (amount, sender_id))
-        cur.execute("UPDATE users SET balance = balance + %s WHERE id = %s", (amount, receiver['id']))
-        conn.commit()
+        cur.execute("UPDATE users SET balance = balance + %s WHERE id = %s", (amount, receiver_id))
 
+        # Сохраняем транзакцию
+        cur.execute(
+            "INSERT INTO transactions (sender_id, receiver_id, amount) VALUES (%s, %s, %s)",
+            (sender_id, receiver_id, amount)
+        )
+
+        conn.commit()
         response_data = json.dumps({"message": "Перевод успешно выполнен"})
         return Response(response_data, status=200, mimetype='application/json')
     except Exception as e:
@@ -209,13 +220,13 @@ def create_user():
         try:
             cur.execute(
                 "INSERT INTO users (full_name, username, password, phone, account_number, balance, user_type) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
                 (full_name, username, password, phone, account_number, balance, user_type)
             )
-            user_id = cur.fetchone()['id']
+            user_id = cur.lastrowid  # Получаем ID последней вставленной записи
             conn.commit()
             return json.dumps({"id": user_id}), 201, {'Content-Type': 'application/json'}
-        except psycopg2.Error as e:
+        except pymysql.Error as e:
             conn.rollback()
             return json.dumps({"error": f"Ошибка при создании пользователя: {str(e)}"}), 500, {'Content-Type': 'application/json'}
         finally:
@@ -386,14 +397,15 @@ def users():
         try:
             cur.execute(
                 "INSERT INTO users (full_name, username, password, phone, account_number, balance, user_type) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
                 (full_name, username, password, phone, account_number, balance, user_type)
             )
-            user_id = cur.fetchone()['id']
+            user_id = cur.lastrowid  # Получаем ID последней вставленной записи
             conn.commit()
             return json.dumps({"id": user_id}), 201, {'Content-Type': 'application/json'}
-        except psycopg2.Error as e:
+        except pymysql.Error as e:
             conn.rollback()
             return json.dumps({"error": f"Ошибка при создании пользователя: {str(e)}"}), 500, {'Content-Type': 'application/json'}
         finally:
             db_close(conn, cur)
+            
