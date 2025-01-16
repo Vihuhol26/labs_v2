@@ -1,12 +1,11 @@
 from flask import Flask, redirect, url_for, render_template
-import os
-import secrets
+from flask_login import LoginManager, login_required, current_user
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from db import db
-from os import path
 from db.models import users8
-from flask_login  import LoginManager
+import os
+import secrets
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(16))  # Генерация секретного ключа
@@ -33,13 +32,14 @@ app.register_blueprint(lab7)
 app.register_blueprint(lab8)
 app.register_blueprint(rgz)
 
+# Настройка Flask-Login
 login_manager = LoginManager()
-login_manager.login_view = 'lab8.login'
+login_manager.login_view = 'rgz.login'  # Укажи правильный маршрут для авторизации
 login_manager.init_app(app)
 
 @login_manager.user_loader
-def load_users(login_id):
-    return users8.query.get(int(login_id))
+def load_user(user_id):
+    return users8.query.get(int(user_id))
 
 # Конфигурация приложения
 app.config['DB_TYPE'] = os.getenv('DB_TYPE', 'postgres')
