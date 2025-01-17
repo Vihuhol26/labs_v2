@@ -11,10 +11,10 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(16))  # Генерация секретного ключа
 CORS(app, supports_credentials=True)
 
-# Инициализация Flask-Login
-login_manager = LoginManager()
-login_manager.login_view = 'rgz.login'  # Указываем страницу для авторизации
-login_manager.init_app(app)
+# Настройка подключения к MySQL
+app.config['SQLALCHEMY_DATABASE_URI'] = \
+    'mysql+pymysql://Vihuhol:Qwerty220140@Vihuhol.mysql.pythonanywhere-services.com/Vihuhol$default'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Отключаем предупреждения
 
 # Инициализация SQLAlchemy
 db = SQLAlchemy(app)
@@ -27,6 +27,11 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(120), nullable=False)
     balance = db.Column(db.Float, default=0.0)
     user_type = db.Column(db.String(20), default='user')
+
+# Инициализация Flask-Login
+login_manager = LoginManager()
+login_manager.login_view = 'rgz.login'  # Указываем страницу для авторизации
+login_manager.init_app(app)
 
 # Загрузчик пользователя для Flask-Login
 @login_manager.user_loader
@@ -54,26 +59,6 @@ app.register_blueprint(lab7)
 app.register_blueprint(lab8)
 app.register_blueprint(rgz)
 
-# Конфигурация приложения
-app.config['DB_TYPE'] = os.getenv('DB_TYPE', 'mysql')  # Указываем MySQL по умолчанию
-app.config['JSON_AS_ASCII'] = False
-app.config['JSONIFY_MIMETYPE'] = "application/json; charset=utf-8"
-
-if app.config['DB_TYPE'] == 'mysql':
-    db_name = 'Vihuhol$default'  # Имя вашей базы данных
-    db_user = 'Vihuhol'  # Имя пользователя
-    db_password = 'Qwerty220140'  # Пароль
-    host_ip = 'Vihuhol.mysql.pythonanywhere-services.com'  # Хост
-    app.config['SQLALCHEMY_DATABASE_URI'] = \
-        f'mysql+pymysql://{db_user}:{db_password}@{host_ip}/{db_name}'
-else:
-    dir_path = path.dirname(path.realpath(__file__))
-    db_path = path.join(dir_path, "oparina_sofya_orm.db")
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-
-# Инициализация базы данных
-db.init_app(app)
-
 # Создание таблиц в базе данных (если их нет)
 with app.app_context():
     db.create_all()
@@ -91,7 +76,3 @@ def menu():
 @app.route("/rgz")
 def menu_rgz():
     return render_template('rgz.html')
-
-# Запуск приложения
-if __name__ == "__main__":
-    app.run(debug=True)
