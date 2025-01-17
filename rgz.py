@@ -1,4 +1,4 @@
-from flask import Blueprint, request, session, redirect, url_for, Response, render_template
+from flask import Blueprint, request, redirect, url_for, Response, render_template, jsonify
 from functools import wraps
 import pymysql
 from pymysql.cursors import DictCursor
@@ -7,9 +7,34 @@ from decimal import Decimal
 import requests
 import os
 import logging
+from flask_login import login_user, logout_user, login_required, current_user, UserMixin, LoginManager
 
 # Создаем Blueprint
 rgz = Blueprint('rgz', __name__)
+
+# Инициализация LoginManager
+login_manager = LoginManager()
+login_manager.login_view = 'rgz.login'  # Указываем страницу для авторизации
+
+# Класс пользователя
+class User(UserMixin):
+    def __init__(self, user_dict):
+        self.id = user_dict['id']
+        self.username = user_dict['username']
+        self.user_type = user_dict['user_type']
+        self.is_active = True  # Убедитесь, что этот атрибут есть
+
+# Загрузчик пользователя
+@login_manager.user_loader
+def load_user(user_id):
+    conn, cur = db_connect()
+    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user_dict = cur.fetchone()
+    db_close(conn, cur)
+
+    if user_dict:
+        return User(user_dict)
+    return None
 
 # Кастомный сериализатор для Decimal
 def decimal_default(obj):
@@ -45,9 +70,8 @@ def db_close(conn, cur):
 def manager_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        print("Текущий user_type в декораторе:", session.get('user_type'))  # Отладочный вывод
-        if 'user_id' not in session or session.get('user_type') != 'manager':
-            return json.dumps({"error": "Доступ запрещен"}), 403, {'Content-Type': 'application/json'}
+        if not current_user.is_authenticated or current_user.user_type != 'manager':
+            return jsonify({"error": "Доступ запрещен"}), 403
         return f(*args, **kwargs)
     return decorated_function
 
@@ -61,31 +85,22 @@ def jsonrpc():
             {"id": 1, "amount": 100, "date": "2024-01-01"},
             {"id": 2, "amount": 200, "date": "2024-01-02"}
         ]
-        return Response(
-            json.dumps({
-                "jsonrpc": "2.0",
-                "result": {"transactions": transactions},
-                "id": data['id']
-            }),
-            mimetype='application/json'
-        )
+        return jsonify({
+            "jsonrpc": "2.0",
+            "result": {"transactions": transactions},
+            "id": data['id']
+        })
     else:
-        return Response(
-            json.dumps({
-                "jsonrpc": "2.0",
-                "error": {"code": -32601, "message": "Method not found"},
-                "id": data['id']
-            }),
-            mimetype='application/json',
-            status=404
-        )
+        return jsonify({
+            "jsonrpc": "2.0",
+            "error": {"code": -32601, "message": "Method not found"},
+            "id": data['id']
+        }), 404
 
 @rgz.route('/rgz/dashboard')
+@login_required
 def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('rgz.login'))
-
-    user_id = session['user_id']
+    user_id = current_user.id  # Используем current_user
     conn, cur = db_connect()
     cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
     user = cur.fetchone()
@@ -97,63 +112,54 @@ def dashboard():
     return render_template('rgz/dashboard.html', user=user)
 
 # Авторизация пользователя
-@rgz.route('/rgz/login', methods=['GET', 'POST'])
+@rgz.route('/rgz/login', methods=['POST'])
 def login():
-    if request.method == 'GET':
-        return render_template('rgz/login.html')
-    elif request.method == 'POST':
+    if request.method == 'POST':
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
 
         conn, cur = db_connect()
         if cur is None:
-            return json.dumps({"error": "Ошибка подключения к базе данных"}), 500, {'Content-Type': 'application/json'}
+            return jsonify({"error": "Ошибка подключения к базе данных"}), 500
 
         try:
             cur.execute("SELECT * FROM users WHERE username=%s", (username,))
-            user = cur.fetchone()
+            user_dict = cur.fetchone()
             db_close(conn, cur)
 
-            if user is None:
-                return json.dumps({"error": "Пользователь не найден"}), 404, {'Content-Type': 'application/json'}
+            if user_dict is None:
+                return jsonify({"error": "Пользователь не найден"}), 404
 
-            if user['password'] == password:
-                session['user_id'] = user['id']
-                session['username'] = username
-                session['user_type'] = user['user_type']
-                logging.debug("Данные сессии после авторизации: %s", session)
-                return json.dumps({"message": "Авторизация успешна", "redirect": url_for('rgz.dashboard')}), 200, {'Content-Type': 'application/json'}
-            return json.dumps({"error": "Неверный пароль"}), 401, {'Content-Type': 'application/json'}
+            if user_dict['password'] == password:
+                user = User(user_dict)  # Создаем объект User
+                login_user(user)  # Авторизуем пользователя
+                return jsonify({"message": "Авторизация успешна", "redirect": url_for('rgz.dashboard')}), 200
+            return jsonify({"error": "Неверный пароль"}), 401
         except Exception as e:
             logging.error(f"Ошибка при выполнении запроса: {e}")
-            return json.dumps({"error": "Ошибка сервера"}), 500, {'Content-Type': 'application/json'}
-        
-@rgz.route('/rgz/transfer', methods=['GET', 'POST'])
-def transfer():
-    if 'user_id' not in session:  # Проверка авторизации на сервере
-        return redirect(url_for('rgz.login'))
+            return jsonify({"error": "Ошибка сервера"}), 500
 
+@rgz.route('/rgz/transfer', methods=['GET', 'POST'])
+@login_required
+def transfer():
     if request.method == 'GET':
         return render_template('rgz/transfer.html')
 
     # Логика для POST-запроса
     data = request.get_json()
     if not data:
-        response_data = json.dumps({"error": "Отсутствуют данные в запросе"})
-        return Response(response_data, status=400, mimetype='application/json')
+        return jsonify({"error": "Отсутствуют данные в запросе"}), 400
 
-    sender_id = session['user_id']
+    sender_id = current_user.id
     receiver_phone = data.get('receiver_phone')
     amount = data.get('amount')
 
     if not receiver_phone or not amount:
-        response_data = json.dumps({"error": "Все поля обязательны"})
-        return Response(response_data, status=400, mimetype='application/json')
+        return jsonify({"error": "Все поля обязательны"}), 400
 
     if amount <= 0:
-        response_data = json.dumps({"error": "Сумма перевода должна быть больше нуля"})
-        return Response(response_data, status=400, mimetype='application/json')
+        return jsonify({"error": "Сумма перевода должна быть больше нуля"}), 400
 
     conn, cur = db_connect()
     try:
@@ -161,8 +167,7 @@ def transfer():
         cur.execute("SELECT id FROM users WHERE phone = %s", (receiver_phone,))
         receiver = cur.fetchone()
         if not receiver:
-            response_data = json.dumps({"error": "Получатель не найден"})
-            return Response(response_data, status=404, mimetype='application/json')
+            return jsonify({"error": "Получатель не найден"}), 404
 
         receiver_id = receiver['id']
 
@@ -170,8 +175,7 @@ def transfer():
         cur.execute("SELECT balance FROM users WHERE id = %s", (sender_id,))
         sender_balance = cur.fetchone()['balance']
         if sender_balance < amount:
-            response_data = json.dumps({"error": "Недостаточно средств"})
-            return Response(response_data, status=400, mimetype='application/json')
+            return jsonify({"error": "Недостаточно средств"}), 400
 
         # Обновляем балансы
         cur.execute("UPDATE users SET balance = balance - %s WHERE id = %s", (amount, sender_id))
@@ -184,15 +188,13 @@ def transfer():
         )
 
         conn.commit()
-        response_data = json.dumps({"message": "Перевод успешно выполнен"})
-        return Response(response_data, status=200, mimetype='application/json')
+        return jsonify({"message": "Перевод успешно выполнен"}), 200
     except Exception as e:
         conn.rollback()
-        response_data = json.dumps({"error": f"Ошибка при переводе средств: {str(e)}"})
-        return Response(response_data, status=500, mimetype='application/json')
+        return jsonify({"error": f"Ошибка при переводе средств: {str(e)}"}), 500
     finally:
         db_close(conn, cur)
-        
+
 @rgz.route('/rgz/create_user', methods=['GET', 'POST'])
 @manager_required
 def create_user():
@@ -200,11 +202,9 @@ def create_user():
         return render_template('rgz/create_user.html')
     elif request.method == 'POST':
         if not request.is_json:
-            return json.dumps({"error": "Запрос должен быть в формате JSON"}), 415, {'Content-Type': 'application/json'}
+            return jsonify({"error": "Запрос должен быть в формате JSON"}), 415
 
         data = request.get_json()
-        print("Данные для создания пользователя:", data)  # Отладочный вывод
-
         full_name = data.get('full_name')
         username = data.get('username')
         password = data.get('password')
@@ -214,7 +214,7 @@ def create_user():
         user_type = data.get('user_type', 'user')
 
         if not all([full_name, username, password]):
-            return json.dumps({"error": "Не все обязательные поля заполнены"}), 400, {'Content-Type': 'application/json'}
+            return jsonify({"error": "Не все обязательные поля заполнены"}), 400
 
         conn, cur = db_connect()
         try:
@@ -225,10 +225,10 @@ def create_user():
             )
             user_id = cur.lastrowid  # Получаем ID последней вставленной записи
             conn.commit()
-            return json.dumps({"id": user_id}), 201, {'Content-Type': 'application/json'}
+            return jsonify({"id": user_id}), 201
         except pymysql.Error as e:
             conn.rollback()
-            return json.dumps({"error": f"Ошибка при создании пользователя: {str(e)}"}), 500, {'Content-Type': 'application/json'}
+            return jsonify({"error": f"Ошибка при создании пользователя: {str(e)}"}), 500
         finally:
             db_close(conn, cur)
 
@@ -236,18 +236,14 @@ def create_user():
 logging.basicConfig(level=logging.DEBUG)
 
 @rgz.route('/rgz/transaction_history')
+@login_required
 def transaction_history():
-    if 'user_id' not in session:
-        logging.warning("Пользователь не авторизован")
-        return redirect(url_for('rgz.login'))
-
-    user_id = session['user_id']
+    user_id = current_user.id
     logging.debug(f"Запрос истории транзакций для пользователя: {user_id}")
 
     try:
-        # Используем относительный URL
         response = requests.post(
-            '/jsonrpc',  
+            'http://vihuhol.pythonanywhere.com/jsonrpc',
             json={
                 "jsonrpc": "2.0",
                 "method": "get_transaction_history",
@@ -258,20 +254,12 @@ def transaction_history():
 
         if response.status_code != 200:
             logging.error(f"Ошибка сервера: {response.status_code}")
-            return Response(
-                json.dumps({"error": "Ошибка сервера"}),
-                status=500,
-                mimetype='application/json'
-            )
+            return jsonify({"error": "Ошибка сервера"}), 500
 
         data = response.json()
         if 'error' in data:
             logging.error(f"Ошибка JSON-RPC: {data['error']}")
-            return Response(
-                json.dumps(data['error']),
-                status=400,
-                mimetype='application/json'
-            )
+            return jsonify(data['error']), 400
 
         transactions = data['result']['transactions']
         logging.debug(f"Получено транзакций: {len(transactions)}")
@@ -279,24 +267,19 @@ def transaction_history():
 
     except requests.exceptions.RequestException as e:
         logging.error(f"Ошибка при выполнении запроса: {str(e)}")
-        return Response(
-            json.dumps({"error": f"Ошибка при выполнении запроса: {str(e)}"}),
-            status=500,
-            mimetype='application/json'
-        )
-        
-# Выход из системы
+        return jsonify({"error": f"Ошибка при выполнении запроса: {str(e)}"}), 500
+
 @rgz.route('/rgz/logout', methods=['POST'])
+@login_required
 def logout():
-    session.clear()
-    return json.dumps({"message": "Вы успешно вышли из системы", "redirect": url_for('rgz.login')}), 200, {'Content-Type': 'application/json'}
+    logout_user()
+    return jsonify({"message": "Вы успешно вышли из системы", "redirect": url_for('rgz.login')}), 200
 
 @rgz.route('/rgz/manage_users')
 @manager_required
 def manage_users():
     return render_template('rgz/manage_users.html')
 
-# Редактирование пользователя (только для менеджеров)
 @rgz.route('/rgz/users/<int:user_id>', methods=['PUT'])
 @manager_required
 def update_user(user_id):
@@ -314,10 +297,10 @@ def update_user(user_id):
         cur.execute("UPDATE users SET full_name=%s, username=%s, password=%s, phone=%s, account_number=%s, balance=%s, user_type=%s WHERE id=%s",
                     (full_name, username, password, phone, account_number, balance, user_type, user_id))
         conn.commit()
-        return json.dumps({"message": "Пользователь успешно обновлен"}), 200, {'Content-Type': 'application/json'}
+        return jsonify({"message": "Пользователь успешно обновлен"}), 200
     except Exception as e:
         conn.rollback()
-        return json.dumps({"error": f"Ошибка при обновлении пользователя: {str(e)}"}), 500, {'Content-Type': 'application/json'}
+        return jsonify({"error": f"Ошибка при обновлении пользователя: {str(e)}"}), 500
     finally:
         db_close(conn, cur)
 
@@ -328,32 +311,30 @@ def delete_user(user_id):
     try:
         cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
         conn.commit()
-        return json.dumps({"message": "Пользователь успешно удален"}), 200, {'Content-Type': 'application/json'}
+        return jsonify({"message": "Пользователь успешно удален"}), 200
     except Exception as e:
         conn.rollback()
-        return json.dumps({"error": f"Ошибка при удалении пользователя: {str(e)}"}), 500, {'Content-Type': 'application/json'}
+        return jsonify({"error": f"Ошибка при удалении пользователя: {str(e)}"}), 500
     finally:
         db_close(conn, cur)
-        
-@rgz.route('/rgz/users', methods=['GET', 'POST'])  # Добавлен метод POST
+
+@rgz.route('/rgz/users', methods=['GET', 'POST'])
 @manager_required
 def users():
     if request.method == 'GET':
-        # Обработка GET-запроса (получение списка пользователей)
         conn, cur = db_connect()
         try:
             cur.execute("SELECT * FROM users")
             users = cur.fetchall()
-            return json.dumps({"users": users}, default=decimal_default), 200, {'Content-Type': 'application/json'}
+            return jsonify({"users": users}), 200
         except Exception as e:
-            return json.dumps({"error": f"Ошибка при получении списка пользователей: {str(e)}"}), 500, {'Content-Type': 'application/json'}
+            return jsonify({"error": f"Ошибка при получении списка пользователей: {str(e)}"}), 500
         finally:
             db_close(conn, cur)
 
     elif request.method == 'POST':
-        # Обработка POST-запроса (создание пользователя)
         if not request.is_json:
-            return json.dumps({"error": "Запрос должен быть в формате JSON"}), 415, {'Content-Type': 'application/json'}
+            return jsonify({"error": "Запрос должен быть в формате JSON"}), 415
 
         data = request.get_json()
         full_name = data.get('full_name')
@@ -365,7 +346,7 @@ def users():
         user_type = data.get('user_type', 'user')
 
         if not all([full_name, username, password]):
-            return json.dumps({"error": "Не все обязательные поля заполнены"}), 400, {'Content-Type': 'application/json'}
+            return jsonify({"error": "Не все обязательные поля заполнены"}), 400
 
         conn, cur = db_connect()
         try:
@@ -374,12 +355,12 @@ def users():
                 "VALUES (%s, %s, %s, %s, %s, %s, %s)",
                 (full_name, username, password, phone, account_number, balance, user_type)
             )
-            user_id = cur.lastrowid  # Получаем ID последней вставленной записи
+            user_id = cur.lastrowid
             conn.commit()
-            return json.dumps({"id": user_id}), 201, {'Content-Type': 'application/json'}
+            return jsonify({"id": user_id}), 201
         except pymysql.Error as e:
             conn.rollback()
-            return json.dumps({"error": f"Ошибка при создании пользователя: {str(e)}"}), 500, {'Content-Type': 'application/json'}
+            return jsonify({"error": f"Ошибка при создании пользователя: {str(e)}"}), 500
         finally:
             db_close(conn, cur)
             

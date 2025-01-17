@@ -1,15 +1,26 @@
 from flask import Flask, redirect, url_for, render_template
-import os
-import secrets
+from flask_login import LoginManager, login_required, current_user
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from db import db
+from db.models import users8
+import os
+import secrets
 from os import path
 
 # Создаем приложение Flask
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(16))  # Генерация секретного ключа
 CORS(app, supports_credentials=True)
+
+# Инициализация Flask-Login
+login_manager = LoginManager()
+login_manager.login_view = 'rgz.login'  # Укажи правильный маршрут для авторизации
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return users8.query.get(int(user_id))
 
 # Импорт и регистрация Blueprints
 from lab1 import lab1
@@ -43,10 +54,8 @@ if app.config['DB_TYPE'] == 'postgres':
     db_password = '4321'
     host_ip = '127.0.0.1'
     host_port = 5432
-
     app.config['SQLALCHEMY_DATABASE_URI'] = \
         f'postgresql://{db_user}:{db_password}@{host_ip}:{host_port}/{db_name}'
-
 else:
     dir_path = path.dirname(path.realpath(__file__))
     db_path = path.join(dir_path, "oparina_sofya_orm.db")
