@@ -2,3 +2,6 @@ venv
 __pycache__/
 .env
 database.db 
+.evn
+chuvashova_rita_orm.db
+requirements.txt
