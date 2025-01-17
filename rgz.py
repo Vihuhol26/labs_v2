@@ -22,7 +22,7 @@ class User(UserMixin):
         self.id = user_dict['id']
         self.username = user_dict['username']
         self.user_type = user_dict['user_type']
-        self.is_active = True  # Убедитесь, что этот атрибут есть
+        # Атрибут is_active уже определен в UserMixin, его не нужно переопределять
 
 # Загрузчик пользователя
 @login_manager.user_loader
@@ -132,8 +132,8 @@ def login():
                 return jsonify({"error": "Пользователь не найден"}), 404
 
             if user_dict['password'] == password:
-                user = User(user_dict)
-                login_user(user)
+                user = User(user_dict)  # Создаем объект User
+                login_user(user)  # Авторизуем пользователя
                 return jsonify({"message": "Авторизация успешна", "redirect": url_for('rgz.dashboard')}), 200
             return jsonify({"error": "Неверный пароль"}), 401
         except Exception as e:
@@ -141,8 +141,8 @@ def login():
             return jsonify({"error": "Ошибка сервера"}), 500
 
     elif request.method == 'GET':
-        return render_template('rgz/login.html')  # Указываем правильный путь
-        
+        return render_template('rgz/login.html')  # Отображаем шаблон login.html
+
 @rgz.route('/rgz/transfer', methods=['GET', 'POST'])
 @login_required
 def transfer():
