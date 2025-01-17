@@ -1,9 +1,7 @@
 from flask import Flask, redirect, url_for, render_template
-from flask_login import LoginManager, login_required, current_user
-from flask_cors import CORS
+from flask_login import LoginManager, UserMixin, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
-from db import db
-from db.models import users8
+from flask_cors import CORS
 import os
 import secrets
 from os import path
@@ -15,12 +13,25 @@ CORS(app, supports_credentials=True)
 
 # Инициализация Flask-Login
 login_manager = LoginManager()
-login_manager.login_view = 'rgz.login'  # Укажи правильный маршрут для авторизации
+login_manager.login_view = 'rgz.login'  # Указываем страницу для авторизации
 login_manager.init_app(app)
 
+# Инициализация SQLAlchemy
+db = SQLAlchemy(app)
+
+# Модель пользователя
+class User(db.Model, UserMixin):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+    balance = db.Column(db.Float, default=0.0)
+    user_type = db.Column(db.String(20), default='user')
+
+# Загрузчик пользователя для Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
-    return users8.query.get(int(user_id))
+    return User.query.get(int(user_id))
 
 # Импорт и регистрация Blueprints
 from lab1 import lab1
@@ -44,18 +55,17 @@ app.register_blueprint(lab8)
 app.register_blueprint(rgz)
 
 # Конфигурация приложения
-app.config['DB_TYPE'] = os.getenv('DB_TYPE', 'postgres')
+app.config['DB_TYPE'] = os.getenv('DB_TYPE', 'mysql')  # Указываем MySQL по умолчанию
 app.config['JSON_AS_ASCII'] = False
 app.config['JSONIFY_MIMETYPE'] = "application/json; charset=utf-8"
 
-if app.config['DB_TYPE'] == 'postgres':
-    db_name = 'chuvashova_rita_orm'
-    db_user = 'chuvashova_rita_orm'
-    db_password = '4321'
-    host_ip = '127.0.0.1'
-    host_port = 5432
+if app.config['DB_TYPE'] == 'mysql':
+    db_name = 'Vihuhol$default'  # Имя вашей базы данных
+    db_user = 'Vihuhol'  # Имя пользователя
+    db_password = 'Qwerty220140'  # Пароль
+    host_ip = 'Vihuhol.mysql.pythonanywhere-services.com'  # Хост
     app.config['SQLALCHEMY_DATABASE_URI'] = \
-        f'postgresql://{db_user}:{db_password}@{host_ip}:{host_port}/{db_name}'
+        f'mysql+pymysql://{db_user}:{db_password}@{host_ip}/{db_name}'
 else:
     dir_path = path.dirname(path.realpath(__file__))
     db_path = path.join(dir_path, "oparina_sofya_orm.db")
@@ -63,6 +73,10 @@ else:
 
 # Инициализация базы данных
 db.init_app(app)
+
+# Создание таблиц в базе данных (если их нет)
+with app.app_context():
+    db.create_all()
 
 # Маршруты
 @app.route("/")
@@ -77,3 +91,7 @@ def menu():
 @app.route("/rgz")
 def menu_rgz():
     return render_template('rgz.html')
+
+# Запуск приложения
+if __name__ == "__main__":
+    app.run(debug=True)

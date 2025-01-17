@@ -5,20 +5,20 @@
 {% block main %}
     <h1>Панель управления</h1>
 
-    {% if 'user_id' not in session %}
+    {% if not current_user.is_authenticated %}
         <div>
             <button onclick="window.location.href='{{ url_for('rgz.login') }}';">Войти</button>
         </div>
     {% else %}
         <div id="user-info">
-            <p>Добро пожаловать, {{ user.username }}!</p>
-            <p>Баланс: {{ user.balance }}</p>
+            <p>Добро пожаловать, {{ current_user.username }}!</p>
+            <p>Баланс: {{ current_user.balance }}</p>
         </div>
 
         <button onclick="window.location.href='{{ url_for('rgz.transaction_history') }}';">История транзакций</button>
         <button onclick="window.location.href='{{ url_for('rgz.transfer') }}';">Перевод средств</button>
 
-        {% if user.user_type == 'manager' %}
+        {% if current_user.user_type == 'manager' %}
             <button onclick="window.location.href='{{ url_for('rgz.create_user') }}';">Создать пользователя</button>
             <button onclick="window.location.href='{{ url_for('rgz.manage_users') }}';">Управление пользователями</button>
         {% endif %}
