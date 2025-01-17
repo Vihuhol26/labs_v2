@@ -112,10 +112,9 @@ def dashboard():
     return render_template('rgz/dashboard.html', user=user)
 
 # Авторизация пользователя
-@rgz.route('/rgz/login', methods=['GET', 'POST'])  # Разрешаем GET и POST
+@rgz.route('/rgz/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Логика для обработки POST-запроса (авторизация)
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
@@ -133,8 +132,8 @@ def login():
                 return jsonify({"error": "Пользователь не найден"}), 404
 
             if user_dict['password'] == password:
-                user = User(user_dict)  # Создаем объект User
-                login_user(user)  # Авторизуем пользователя
+                user = User(user_dict)
+                login_user(user)
                 return jsonify({"message": "Авторизация успешна", "redirect": url_for('rgz.dashboard')}), 200
             return jsonify({"error": "Неверный пароль"}), 401
         except Exception as e:
@@ -142,9 +141,8 @@ def login():
             return jsonify({"error": "Ошибка сервера"}), 500
 
     elif request.method == 'GET':
-        # Логика для обработки GET-запроса (отображение формы входа)
-        return render_template('login.html')  # Отображаем шаблон login.html
-    
+        return render_template('rgz/login.html')  # Указываем правильный путь
+        
 @rgz.route('/rgz/transfer', methods=['GET', 'POST'])
 @login_required
 def transfer():

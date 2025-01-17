@@ -4,7 +4,6 @@
 
 {% block main %}
     <h1>Вход</h1>
-
     <form onsubmit="login(event)">
         <label>
             Логин:
@@ -16,9 +15,7 @@
         </label><br>
         <button type="submit">Войти</button>
     </form>
-
     <div id="login-error" class="error-message" style="color: red; margin-top: 10px;"></div>
-
     <script>
         async function login(event) {
             event.preventDefault();
