@@ -6,7 +6,9 @@ from db import db
 from db.models import users8
 import os
 import secrets
+from os import path
 
+# Создаем приложение Flask
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(16))  # Генерация секретного ключа
 CORS(app, supports_credentials=True)
@@ -34,6 +36,7 @@ app.register_blueprint(lab7)
 app.register_blueprint(lab8)
 app.register_blueprint(rgz)
 
+<<<<<<< HEAD
 # Настройка Flask-Login
 login_manager = LoginManager()
 login_manager.login_view = 'rgz.login'  # Укажи правильный маршрут для авторизации
@@ -43,6 +46,8 @@ login_manager.init_app(app)
 def load_user(user_id):
     return users8.query.get(int(user_id))
 
+=======
+>>>>>>> cca74f80cfeacd40d205ceaa51c170aaddf1a62f
 # Конфигурация приложения
 app.config['DB_TYPE'] = os.getenv('DB_TYPE', 'postgres')
 app.config['JSON_AS_ASCII'] = False
@@ -63,6 +68,7 @@ else:
     db_path = path.join(dir_path, "oparina_sofya_orm.db")
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
+# Инициализация базы данных
 db.init_app(app)
 
 # Маршруты
