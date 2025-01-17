@@ -17,7 +17,7 @@
         <button type="submit">Войти</button>
     </form>
 
-    <div id="login-error" class="error-message"></div>
+    <div id="login-error" class="error-message" style="color: red; margin-top: 10px;"></div>
 
     <script>
         async function login(event) {
@@ -25,17 +25,22 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            const response = await fetch("{{ url_for('rgz.login') }}", {  // Используем url_for
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
+            try {
+                const response = await fetch("{{ url_for('rgz.login') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
 
-            const result = await response.json();
-            if (response.ok) {
-                window.location.href = "{{ url_for('rgz.dashboard') }}";  // Используем url_for
-            } else {
-                document.getElementById('login-error').innerText = result.error || 'Ошибка при авторизации';
+                const result = await response.json();
+                if (response.ok) {
+                    window.location.href = result.redirect || "{{ url_for('rgz.dashboard') }}";
+                } else {
+                    document.getElementById('login-error').innerText = result.error || 'Ошибка при авторизации';
+                }
+            } catch (error) {
+                document.getElementById('login-error').innerText = 'Ошибка при отправке запроса';
+                console.error('Ошибка:', error);
             }
         }
     </script>

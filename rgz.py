@@ -112,9 +112,10 @@ def dashboard():
     return render_template('rgz/dashboard.html', user=user)
 
 # Авторизация пользователя
-@rgz.route('/rgz/login', methods=['POST'])
+@rgz.route('/rgz/login', methods=['GET', 'POST'])  # Разрешаем GET и POST
 def login():
     if request.method == 'POST':
+        # Логика для обработки POST-запроса (авторизация)
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
@@ -140,6 +141,10 @@ def login():
             logging.error(f"Ошибка при выполнении запроса: {e}")
             return jsonify({"error": "Ошибка сервера"}), 500
 
+    elif request.method == 'GET':
+        # Логика для обработки GET-запроса (отображение формы входа)
+        return render_template('login.html')  # Отображаем шаблон login.html
+    
 @rgz.route('/rgz/transfer', methods=['GET', 'POST'])
 @login_required
 def transfer():
